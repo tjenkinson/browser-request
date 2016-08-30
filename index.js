@@ -12,6 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// UMD HEADER START 
+(function (root, factory) {
+    if (typeof define === 'function' && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], factory);
+    } else if (typeof exports === 'object') {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like enviroments that support module.exports,
+        // like Node.
+        module.exports = factory();
+    } else {
+        // Browser globals (root is window)
+        root.returnExports = factory();
+  }
+}(this, function () {
+// UMD HEADER END
+
 var XHR = XMLHttpRequest
 if (!XHR) throw new Error('missing XMLHttpRequest')
 request.log = {
@@ -198,6 +215,11 @@ function run_xhr(options) {
   xhr.open(options.method, options.uri, true) // asynchronous
   if(is_cors)
     xhr.withCredentials = !! options.withCredentials
+
+  request.log.debug('Request started', {'id':xhr.id})
+  for (var key in options.headers)
+    xhr.setRequestHeader(key, options.headers[key])
+
   xhr.send(options.body)
   return xhr
 
@@ -207,13 +229,7 @@ function run_xhr(options) {
 
     request.log.debug('State change', {'state':xhr.readyState, 'id':xhr.id, 'timed_out':timed_out})
 
-    if(xhr.readyState === XHR.OPENED) {
-      request.log.debug('Request started', {'id':xhr.id})
-      for (var key in options.headers)
-        xhr.setRequestHeader(key, options.headers[key])
-    }
-
-    else if(xhr.readyState === XHR.HEADERS_RECEIVED)
+    if(xhr.readyState === XHR.HEADERS_RECEIVED)
       on_response()
 
     else if(xhr.readyState === XHR.LOADING) {
@@ -471,4 +487,7 @@ function b64_enc (data) {
 
     return enc;
 }
-module.exports = request;
+    return request;
+//UMD FOOTER START
+}));
+//UMD FOOTER END
